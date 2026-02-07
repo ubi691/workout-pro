@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#08080f">
+<title>Workout Pro — Alberto & Ubaldo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏋️</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deepest: #08080f;
+    --bg-deep: #0c0c18;
+    --bg-card: #111122;
+    --bg-card-hover: #16162a;
+    --bg-input: #0a0a16;
+    --border: #1e1e38;
+    --border-light: #2a2a4a;
+    --text-primary: #f0f0f5;
+    --text-secondary: #8888aa;
+    --text-muted: #555570;
+    --accent: #f97316;
+    --accent-glow: rgba(249, 115, 22, 0.15);
+    --green: #22c55e;
+    --green-glow: rgba(34, 197, 94, 0.12);
+    --red: #ef4444;
+    --radius: 14px;
+    --radius-sm: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Outfit', -apple-system, sans-serif;
+    background: var(--bg-deepest);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { display: none; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; }
+
+  /* Splash */
+  .splash {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--bg-deepest);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .splash.hide { opacity: 0; transform: scale(1.05); pointer-events: none; }
+  .splash-icon { font-size: 72px; animation: splashPulse 1.2s ease infinite; }
+  .splash-title { font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-top: 16px; }
+  .splash-title span { color: var(--accent); }
+  .splash-sub {
+    font-size: 12px; color: var(--text-muted); letter-spacing: 4px;
+    text-transform: uppercase; margin-top: 6px;
+  }
+  .splash-bar {
+    width: 120px; height: 3px; background: var(--border);
+    border-radius: 3px; margin-top: 32px; overflow: hidden;
+  }
+  .splash-bar-inner {
+    height: 100%; background: var(--accent); border-radius: 3px;
+    animation: splashLoad 1.8s ease forwards;
+  }
+
+  /* App shell */
+  .app { max-width: 480px; margin: 0 auto; padding-bottom: calc(80px + var(--safe-bottom)); opacity: 0; animation: appIn 0.5s ease 2s forwards; }
+
+  /* Header */
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    background: linear-gradient(180deg, var(--bg-deepest) 0%, var(--bg-deepest) 85%, transparent 100%);
+    padding: 16px 18px 22px;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .logo { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .logo-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; margin-top: 1px; }
+  .btn-reset {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 7px 14px;
+    font-size: 11px; color: var(--text-secondary); cursor: pointer;
+    font-family: inherit; font-weight: 600; transition: all 0.2s;
+  }
+  .btn-reset:active { background: var(--bg-card-hover); transform: scale(0.96); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; }
+  .tab {
+    flex: 1; padding: 14px 8px; border-radius: var(--radius);
+    text-align: center; cursor: pointer; border: 1px solid var(--border);
+    background: var(--bg-card); transition: all 0.25s ease;
+    position: relative; overflow: hidden;
+  }
+  .tab::before {
+    content: ''; position: absolute; inset: 0; opacity: 0;
+    background: linear-gradient(135deg, var(--accent), #ea580c);
+    transition: opacity 0.25s;
+  }
+  .tab.active::before { opacity: 1; }
+  .tab.active { border-color: var(--accent); box-shadow: 0 4px 20px var(--accent-glow); }
+  .tab-icon { font-size: 20px; position: relative; z-index: 1; }
+  .tab-label {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    letter-spacing: 0.5px; margin-top: 3px; position: relative; z-index: 1;
+  }
+  .tab.active .tab-label { color: #fff; }
+
+  /* Workout info */
+  .workout-info { padding: 8px 20px 4px; }
+  .workout-title { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+  .workout-subtitle { font-size: 12.5px; color: var(--text-secondary); margin-top: 2px; }
+  .workout-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .workout-meta span { color: var(--accent); font-weight: 600; }
+
+  /* Exercise list */
+  .exercise-list { padding: 10px 14px; }
+
+  /* Exercise card */
+  .exercise-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 12px; overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .exercise-card.done {
+    border-color: #1a3a2a;
+    background: linear-gradient(135deg, #0a1510 0%, #0d1a14 100%);
+  }
+
+  .card-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 14px; cursor: pointer; user-select: none;
+  }
+
+  .card-illustration {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative; overflow: hidden;
+  }
+
+  .card-info { flex: 1; min-width: 0; }
+  .card-name {
+    font-size: 14.5px; font-weight: 700; letter-spacing: 0.1px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-muscle { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .card-stats { display: flex; gap: 14px; margin-top: 5px; }
+  .stat {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .stat-accent { color: var(--accent); }
+  .stat-muted { color: var(--text-muted); }
+  .stat-weight { color: #fbbf24; }
+
+  .card-chevron {
+    width: 26px; height: 26px; border-radius: 8px; background: var(--bg-input);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.25s ease; flex-shrink: 0;
+  }
+  .card-chevron.open { transform: rotate(180deg); }
+  .card-chevron svg { width: 12px; height: 12px; }
+
+  /* Expanded */
+  .card-body {
+    max-height: 0; overflow: hidden; transition: max-height 0.35s ease;
+    padding: 0 14px;
+  }
+  .card-body.open { max-height: 600px; padding: 0 14px 16px; }
+
+  .notes-box {
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 9px 14px; margin-bottom: 14px;
+  }
+  .notes-label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 1.2px;
+    font-weight: 700; margin-bottom: 2px;
+  }
+  .notes-text { font-size: 12.5px; color: #ccc; line-height: 1.45; }
+
+  /* Weight input */
+  .weight-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .weight-label { font-size: 12px; color: var(--text-secondary); min-width: 42px; font-weight: 500; }
+  .weight-input-wrap {
+    display: flex; align-items: center; background: var(--bg-input);
+    border-radius: var(--radius-sm); border: 1px solid var(--border);
+    flex: 1; max-width: 200px; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .weight-input-wrap:focus-within { border-color: var(--accent); }
+  .weight-input {
+    background: transparent; border: none; color: #fff;
+    font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700;
+    padding: 9px 14px; width: 100%; outline: none;
+  }
+  .weight-unit { font-size: 12px; color: var(--text-muted); padding-right: 14px; font-weight: 600; }
+
+  /* Sets */
+  .sets-section { margin-bottom: 14px; }
+  .sets-label {
+    font-size: 9px; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 1.2px; margin-bottom: 8px; font-weight: 600;
+  }
+  .sets-row { display: flex; gap: 8px; }
+  .set-btn {
+    width: 46px; height: 46px; border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-input); border: 2px solid var(--border);
+    cursor: pointer; transition: all 0.2s ease;
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px;
+    color: var(--text-muted);
+  }
+  .set-btn:active { transform: scale(0.92); }
+  .set-btn.done { border-color: var(--green); background: var(--green); color: #fff; }
+
+  /* Timer */
+  .timer-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .timer-circle {
+    position: relative; width: 54px; height: 54px; cursor: pointer; flex-shrink: 0;
+  }
+  .timer-circle:active { transform: scale(0.94); }
+  .timer-display {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+    color: #fff;
+  }
+  .timer-display.finished { color: var(--green); }
+  .timer-info { display: flex; flex-direction: column; gap: 2px; }
+  .timer-status {
+    font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
+  }
+  .timer-reset { font-size: 10px; color: var(--accent); cursor: pointer; font-weight: 600; }
+
+  /* Video btn */
+  .video-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: #fff; text-decoration: none; padding: 11px 16px; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+    transition: all 0.2s; font-family: inherit;
+  }
+  .video-btn:active { transform: scale(0.97); opacity: 0.9; }
+  .video-btn svg { width: 16px; height: 16px; }
+
+  /* Footer */
+  .footer { text-align: center; padding: 24px 0 20px; }
+  .footer-text { font-size: 10px; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* Animations */
+  @keyframes splashPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+  @keyframes splashLoad { 0% { width: 0; } 100% { width: 100%; } }
+  @keyframes appIn { to { opacity: 1; } }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div class="splash" id="splash">
+  <div class="splash-icon">🏋️</div>
+  <div class="splash-title">WORKOUT <span>PRO</span></div>
+  <div class="splash-sub">Alberto & Ubaldo</div>
+  <div class="splash-bar"><div class="splash-bar-inner"></div></div>
+</div>
+
+<!-- App -->
+<div class="app" id="app">
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="logo">WORKOUT <span>PRO</span></div>
+        <div class="logo-sub">Alberto & Ubaldo</div>
+      </div>
+      <button class="btn-reset" onclick="resetWorkout()">Reset 🔄</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+  <div class="workout-info" id="workoutInfo"></div>
+  <div class="exercise-list" id="exerciseList"></div>
+  <div class="footer"><div class="footer-text">Programma Settimanale · Forza & Ipertrofia</div></div>
+</div>
+
+<script>
+const WORKOUTS = [
+  {
+    name: "Allenamento 1", subtitle: "Petto · Spalle · Tricipiti · Core", icon: "💪",
+    exercises: [
+      { name:"Chest Press", muscle:"Petto", sets:4, reps:"10", rest:90, notes:"Petto ben aperto", video:"https://www.youtube.com/results?search_query=chest+press+machine+tecnica+corretta", color:"#f97316" },
+      { name:"Pec Deck", muscle:"Petto", sets:4, reps:"12", rest:90, notes:"Mantieni le braccia leggermente flesse", video:"https://www.youtube.com/results?search_query=pec+deck+tecnica+corretta", color:"#06b6d4" },
+      { name:"Shoulder Press", muscle:"Spalle", sets:4, reps:"12", rest:60, notes:"Gomito avanti rispetto alla spalla", video:"https://www.youtube.com/results?search_query=shoulder+press+machine+tecnica+corretta", color:"#a78bfa" },
+      { name:"Rear Delt", muscle:"Spalle posteriore", sets:4, reps:"15", rest:60, notes:"Contrai il deltoide posteriore a fine movimento", video:"https://www.youtube.com/results?search_query=rear+delt+machine+tecnica+corretta", color:"#34d399" },
+      { name:"Pushdown Sbarra Girevole", muscle:"Tricipiti", sets:4, reps:"12", rest:60, notes:"Gomiti fermi", video:"https://www.youtube.com/results?search_query=pushdown+sbarra+girevole+tricipiti", color:"#fb923c" },
+      { name:"Sit Up + Leg Raises", muscle:"Core", sets:4, reps:"15", rest:30, notes:"Controlla il movimento, no slancio", video:"https://www.youtube.com/results?search_query=sit+up+leg+raises+addominali", color:"#f472b6" }
+    ]
+  },
+  {
+    name: "Allenamento 2", subtitle: "Gambe · Schiena · Bicipiti · Core", icon: "🦵",
+    exercises: [
+      { name:"Leg Press", muscle:"Gambe", sets:4, reps:"12", rest:120, notes:"Piedi larghezza spalle, schiena aderente", video:"https://www.youtube.com/results?search_query=leg+press+tecnica+corretta", color:"#22d3ee" },
+      { name:"Lat Machine", muscle:"Dorsali", sets:4, reps:"10", rest:90, notes:"Tira verso il petto, scapole addotte", video:"https://www.youtube.com/results?search_query=lat+machine+tecnica+corretta", color:"#818cf8" },
+      { name:"Pulley con Triangolo", muscle:"Dorsali", sets:4, reps:"12", rest:90, notes:"Petto in fuori, tira verso l'ombelico", video:"https://www.youtube.com/results?search_query=pulley+triangolo+tecnica+corretta", color:"#fbbf24" },
+      { name:"Curl con Manubri", muscle:"Bicipiti", sets:4, reps:"10", rest:90, notes:"Supinazione completa a fine movimento", video:"https://www.youtube.com/results?search_query=curl+manubri+bicipiti+tecnica", color:"#f87171" },
+      { name:"French Press con Manubri", muscle:"Tricipiti", sets:4, reps:"18", rest:60, notes:"Gomiti fermi, movimento controllato", video:"https://www.youtube.com/results?search_query=french+press+manubri+tecnica+corretta", color:"#c084fc" },
+      { name:"Russian Twist + Dead Bug", muscle:"Core", sets:4, reps:"14+10", rest:30, notes:"14 Russian Twist + 10 Dead Bug senza pausa", video:"https://www.youtube.com/results?search_query=russian+twist+dead+bug+addominali", color:"#4ade80" }
+    ]
+  }
+];
+
+// SVG illustrations per exercise
+const ILLUSTRATIONS = {
+  "Chest Press": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="16" r="6" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="22" x2="28" y2="36" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="20" y1="26" x2="12" y2="20" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="36" y1="26" x2="44" y2="20" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><rect x="7" y="17.5" width="8" height="3" rx="1.5" fill="${c}" opacity="0.5"/><rect x="41" y="17.5" width="8" height="3" rx="1.5" fill="${c}" opacity="0.5"/><line x1="28" y1="36" x2="22" y2="48" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="36" x2="34" y2="48" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Pec Deck": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="16" r="6" stroke="${c}" stroke-width="2.2" fill="none"/><path d="M22 24 C14 24 10 32 14 38" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M34 24 C42 24 46 32 42 38" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><line x1="28" y1="22" x2="28" y2="38" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="28" y1="38" x2="22" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="38" x2="34" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Shoulder Press": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="14" r="6" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="20" x2="28" y2="36" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="20" y1="24" x2="14" y2="12" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="36" y1="24" x2="42" y2="12" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><rect x="10" y="9" width="8" height="3" rx="1.5" fill="${c}" opacity="0.5"/><rect x="38" y="9" width="8" height="3" rx="1.5" fill="${c}" opacity="0.5"/><line x1="28" y1="36" x2="22" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="36" x2="34" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Rear Delt": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="16" r="5.5" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="22" x2="28" y2="36" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="22" y1="26" x2="10" y2="32" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="34" y1="26" x2="46" y2="32" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><circle cx="10" cy="32" r="2.5" fill="${c}" opacity="0.45"/><circle cx="46" cy="32" r="2.5" fill="${c}" opacity="0.45"/><line x1="28" y1="36" x2="22" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="36" x2="34" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Pushdown Sbarra Girevole": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="12" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="17" x2="28" y2="34" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M22 22 L22 34 L18 42" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M34 22 L34 34 L38 42" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><line x1="16" y1="6" x2="40" y2="6" stroke="${c}" stroke-width="1.6" opacity="0.35"/><line x1="28" y1="6" x2="28" y2="10" stroke="${c}" stroke-width="1.6" opacity="0.35"/><line x1="28" y1="34" x2="22" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="34" x2="34" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Sit Up + Leg Raises": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="22" cy="18" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><path d="M22 23 C22 23 26 30 30 34" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M18 26 L12 22" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M26 26 L30 22" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M30 34 L40 28" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M30 34 L38 42" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  "Leg Press": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="18" cy="18" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><path d="M18 23 L18 32" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M18 32 L30 40" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M30 40 L42 32" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><rect x="40" y="28" width="10" height="8" rx="2" stroke="${c}" stroke-width="1.6" fill="none" opacity="0.5"/><path d="M14 26 L10 22" stroke="${c}" stroke-width="2" stroke-linecap="round"/><path d="M22 26 L26 22" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Lat Machine": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><line x1="28" y1="4" x2="28" y2="12" stroke="${c}" stroke-width="1.6" opacity="0.35"/><line x1="16" y1="4" x2="40" y2="4" stroke="${c}" stroke-width="2" opacity="0.35"/><circle cx="28" cy="17" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="22" x2="28" y2="38" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M18 12 L12 26" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M38 12 L44 26" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="28" y1="38" x2="22" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="38" x2="34" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Pulley con Triangolo": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="16" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="21" x2="28" y2="36" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M22 26 L12 30" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M34 26 L44 30" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M12 30 L12 35 L22 35" stroke="${c}" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M44 30 L44 35 L34 35" stroke="${c}" stroke-width="2" stroke-linecap="round" fill="none"/><line x1="28" y1="36" x2="22" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="36" x2="34" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Curl con Manubri": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="14" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="19" x2="28" y2="36" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M22 24 L22 30 L16 26" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M34 24 L34 30 L40 26" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><rect x="13" y="24" width="3" height="5" rx="1" fill="${c}" opacity="0.45"/><rect x="40" y="24" width="3" height="5" rx="1" fill="${c}" opacity="0.45"/><line x1="28" y1="36" x2="22" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="36" x2="34" y2="49" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "French Press con Manubri": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="28" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><line x1="28" y1="33" x2="28" y2="48" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="24" y1="38" x2="20" y2="48" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="32" y1="38" x2="36" y2="48" stroke="${c}" stroke-width="2" stroke-linecap="round"/><path d="M24 24 L24 12" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M32 24 L32 12" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><rect x="20" y="8" width="16" height="4" rx="2" fill="${c}" opacity="0.45"/></svg>`,
+  "Russian Twist + Dead Bug": (c) => `<svg width="42" height="42" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="16" r="5" stroke="${c}" stroke-width="2.2" fill="none"/><path d="M28 21 C28 21 24 28 28 34" stroke="${c}" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M22 26 L12 30" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M34 26 L44 22" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><line x1="28" y1="34" x2="20" y2="46" stroke="${c}" stroke-width="2" stroke-linecap="round"/><line x1="28" y1="34" x2="36" y2="46" stroke="${c}" stroke-width="2" stroke-linecap="round"/></svg>`
+};
+
+let activeWorkout = 0;
+let timers = {};
+
+function getKey(prefix, wi, ei) { return `wp_${prefix}_w${wi}_e${ei}`; }
+
+function loadData(key, fallback) {
+  try { const v = localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; }
+  catch { return fallback; }
+}
+function saveData(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+function renderTabs() {
+  const el = document.getElementById('tabs');
+  el.innerHTML = WORKOUTS.map((w, i) => `
+    <div class="tab ${i === activeWorkout ? 'active' : ''}" onclick="switchWorkout(${i})">
+      <div class="tab-icon">${w.icon}</div>
+      <div class="tab-label">${w.name.replace('Allenamento ', 'ALL. ')}</div>
+    </div>
+  `).join('');
+}
+
+function renderWorkoutInfo() {
+  const w = WORKOUTS[activeWorkout];
+  const totalSets = w.exercises.reduce((a, e) => a + e.sets, 0);
+  document.getElementById('workoutInfo').innerHTML = `
+    <div class="workout-title">${w.name}</div>
+    <div class="workout-subtitle">${w.subtitle}</div>
+    <div class="workout-meta"><span>${w.exercises.length}</span> esercizi · <span>${totalSets}</span> serie totali</div>
+  `;
+}
+
+function renderExercises() {
+  const w = WORKOUTS[activeWorkout];
+  const el = document.getElementById('exerciseList');
+  el.innerHTML = w.exercises.map((ex, i) => {
+    const weight = loadData(getKey('weight', activeWorkout, i), '');
+    const sets = loadData(getKey('sets', activeWorkout, i), []);
+    const allDone = sets.length === ex.sets;
+    const illustrationFn = ILLUSTRATIONS[ex.name];
+    const svg = illustrationFn ? illustrationFn(ex.color) : '';
+
+    return `
+    <div class="exercise-card ${allDone ? 'done' : ''}" id="card-${i}" style="animation: cardIn 0.35s ease ${i * 0.06}s both">
+      <div class="card-header" onclick="toggleCard(${i})">
+        <div class="card-illustration" style="background: ${ex.color}12">${svg}</div>
+        <div class="card-info">
+          <div class="card-name">${ex.name} ${allDone ? '✅' : ''}</div>
+          <div class="card-muscle">${ex.muscle}</div>
+          <div class="card-stats">
+            <span class="stat stat-accent">${ex.sets}×${ex.reps}</span>
+            <span class="stat stat-muted">⏱ ${ex.rest}s</span>
+            ${weight ? `<span class="stat stat-weight">🏋️ ${weight}kg</span>` : ''}
+          </div>
+        </div>
+        <div class="card-chevron" id="chev-${i}">
+          <svg viewBox="0 0 12 12" fill="none"><path d="M3 4.5L6 7.5L9 4.5" stroke="#888" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+      <div class="card-body" id="body-${i}">
+        <div class="notes-box" style="background: ${ex.color}10; border-left: 3px solid ${ex.color}">
+          <div class="notes-label" style="color: ${ex.color}">Indicazioni</div>
+          <div class="notes-text">${ex.notes}</div>
+        </div>
+        <div class="weight-row">
+          <span class="weight-label">Peso:</span>
+          <div class="weight-input-wrap">
+            <input class="weight-input" type="number" inputmode="decimal" placeholder="0" value="${weight}" onchange="saveWeight(${activeWorkout},${i},this.value)">
+            <span class="weight-unit">kg</span>
+          </div>
+        </div>
+        <div class="sets-section">
+          <div class="sets-label">Serie completate (${sets.length}/${ex.sets})</div>
+          <div class="sets-row">
+            ${Array.from({length: ex.sets}, (_, s) => {
+              const done = sets.includes(s);
+              return `<div class="set-btn ${done ? 'done' : ''}" onclick="toggleSet(${activeWorkout},${i},${s})">${done ? '✓' : s+1}</div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="timer-row" id="timer-row-${i}">
+          <div class="timer-circle" onclick="toggleTimer(${i}, ${ex.rest})">
+            <svg width="54" height="54" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="28" fill="none" stroke="#1e1e38" stroke-width="4"/>
+              <circle id="timer-ring-${i}" cx="32" cy="32" r="28" fill="none" stroke="#444" stroke-width="4" stroke-linecap="round"
+                stroke-dasharray="${2*Math.PI*28}" stroke-dashoffset="${2*Math.PI*28}"
+                style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 0.4s"/>
+            </svg>
+            <div class="timer-display" id="timer-display-${i}">${formatTime(ex.rest)}</div>
+          </div>
+          <div class="timer-info">
+            <span class="timer-status" id="timer-status-${i}">Tap per avviare</span>
+            <span class="timer-reset" id="timer-reset-${i}" style="display:none" onclick="resetTimer(${i}, ${ex.rest})">Reset</span>
+          </div>
+        </div>
+        <a href="${ex.video}" target="_blank" rel="noopener noreferrer" class="video-btn">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 4.5v7l5-3.5-5-3.5z"/></svg>
+          Guarda Video Tecnica
+        </a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(i) {
+  const body = document.getElementById(`body-${i}`);
+  const chev = document.getElementById(`chev-${i}`);
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function saveWeight(wi, ei, val) {
+  saveData(getKey('weight', wi, ei), val);
+  // Update the stat badge in the header
+  const card = document.getElementById(`card-${ei}`);
+  if (card) {
+    const stats = card.querySelector('.card-stats');
+    const existing = stats.querySelector('.stat-weight');
+    if (val) {
+      if (existing) existing.innerHTML = `🏋️ ${val}kg`;
+      else {
+        const span = document.createElement('span');
+        span.className = 'stat stat-weight';
+        span.innerHTML = `🏋️ ${val}kg`;
+        stats.appendChild(span);
+      }
+    } else if (existing) existing.remove();
+  }
+}
+
+function toggleSet(wi, ei, setIdx) {
+  let sets = loadData(getKey('sets', wi, ei), []);
+  if (sets.includes(setIdx)) sets = sets.filter(s => s !== setIdx);
+  else sets.push(setIdx);
+  saveData(getKey('sets', wi, ei), sets);
+  renderExercises();
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function toggleTimer(i, totalSec) {
+  const t = timers[i];
+  if (t && t.finished) { resetTimer(i, totalSec); return; }
+  if (t && t.running) {
+    clearInterval(t.interval);
+    t.running = false;
+    document.getElementById(`timer-status-${i}`).textContent = 'In pausa';
+    return;
+  }
+  if (!t) timers[i] = { timeLeft: totalSec, running: false, finished: false, interval: null };
+  const timer = timers[i];
+  timer.running = true;
+  document.getElementById(`timer-status-${i}`).textContent = 'In corso...';
+  document.getElementById(`timer-reset-${i}`).style.display = 'block';
+
+  const ring = document.getElementById(`timer-ring-${i}`);
+  const display = document.getElementById(`timer-display-${i}`);
+  const circ = 2 * Math.PI * 28;
+
+  timer.interval = setInterval(() => {
+    timer.timeLeft--;
+    if (timer.timeLeft <= 0) {
+      clearInterval(timer.interval);
+      timer.running = false;
+      timer.finished = true;
+      display.textContent = '✓';
+      display.classList.add('finished');
+      ring.style.stroke = '#22c55e';
+      ring.style.strokeDashoffset = '0';
+      document.getElementById(`timer-status-${i}`).textContent = 'Completato!';
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      return;
+    }
+    const pct = ((totalSec - timer.timeLeft) / totalSec) * 100;
+    ring.style.strokeDashoffset = circ - (pct / 100) * circ;
+    ring.style.stroke = '#f97316';
+    display.textContent = formatTime(timer.timeLeft);
+  }, 1000);
+}
+
+function resetTimer(i, totalSec) {
+  const t = timers[i];
+  if (t) { clearInterval(t.interval); }
+  timers[i] = null;
+  const circ = 2 * Math.PI * 28;
+  document.getElementById(`timer-ring-${i}`).style.strokeDashoffset = circ;
+  document.getElementById(`timer-ring-${i}`).style.stroke = '#444';
+  const d = document.getElementById(`timer-display-${i}`);
+  d.textContent = formatTime(totalSec);
+  d.classList.remove('finished');
+  document.getElementById(`timer-status-${i}`).textContent = 'Tap per avviare';
+  document.getElementById(`timer-reset-${i}`).style.display = 'none';
+}
+
+function switchWorkout(i) {
+  // Cleanup timers
+  Object.keys(timers).forEach(k => { if (timers[k]) clearInterval(timers[k].interval); });
+  timers = {};
+  activeWorkout = i;
+  renderTabs();
+  renderWorkoutInfo();
+  renderExercises();
+}
+
+function resetWorkout() {
+  if (!confirm('Vuoi resettare le serie completate di questo allenamento?')) return;
+  const w = WORKOUTS[activeWorkout];
+  w.exercises.forEach((_, i) => {
+    saveData(getKey('sets', activeWorkout, i), []);
+  });
+  Object.keys(timers).forEach(k => { if (timers[k]) clearInterval(timers[k].interval); });
+  timers = {};
+  renderExercises();
+}
+
+// Splash + Init
+setTimeout(() => {
+  document.getElementById('splash').classList.add('hide');
+  renderTabs();
+  renderWorkoutInfo();
+  renderExercises();
+}, 2000);
+</script>
+</body>
+</html>
